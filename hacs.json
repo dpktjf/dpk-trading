@@ -1,0 +1,7 @@
+{
+    "name": "DPK Trading",
+    "country": "ALL",
+    "hide_default_branch": true,
+    "homeassistant": "2024.9.2",
+    "render_readme": true
+}
