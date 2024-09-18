@@ -24,11 +24,10 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_STOP_LOSS,
+    CONF_TAKE_PROFIT,
+    CONF_TRADE_PRICE,
     CONF_YAHOO_ENTITY_ID,
-    CONF_MAX_MINS,
-    CONF_RAIN_ENTITY_ID,
-    CONF_SCALE,
-    CONF_THROUGHPUT_MM_H,
     CONFIG_FLOW_VERSION,
     DOMAIN,
 )
@@ -37,7 +36,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class DPKTradingConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Config flow for ETO."""
+    """Config flow for API."""
 
     VERSION = CONFIG_FLOW_VERSION
 
@@ -65,26 +64,12 @@ class DPKTradingConfigFlow(ConfigFlow, domain=DOMAIN):
                                 multiple=False,
                             ),
                         ),
-                        vol.Required(CONF_RAIN_ENTITY_ID): selector.EntitySelector(
-                            selector.EntitySelectorConfig(
-                                domain=[SENSOR_DOMAIN],
-                                multiple=False,
-                            ),
+                        vol.Required(CONF_TRADE_PRICE): float,
+                        vol.Required(CONF_TAKE_PROFIT, default=50): vol.All(
+                            int, vol.Range(min=1, max=100)
                         ),
-                        vol.Optional(CONF_THROUGHPUT_MM_H): selector.NumberSelector(
-                            selector.NumberSelectorConfig(
-                                min=5, max=20, mode=selector.NumberSelectorMode.BOX
-                            ),
-                        ),
-                        vol.Optional(CONF_SCALE): selector.NumberSelector(
-                            selector.NumberSelectorConfig(
-                                min=1, max=100, mode=selector.NumberSelectorMode.BOX
-                            ),
-                        ),
-                        vol.Optional(CONF_MAX_MINS): selector.NumberSelector(
-                            selector.NumberSelectorConfig(
-                                min=1, max=60, mode=selector.NumberSelectorMode.BOX
-                            ),
+                        vol.Required(CONF_STOP_LOSS, default=50): vol.All(
+                            int, vol.Range(min=1, max=100)
                         ),
                     }
                 ),
@@ -127,27 +112,18 @@ class DPKTradingOptionsFlow(OptionsFlow):
                             multiple=False,
                         ),
                     ),
-                    vol.Required(
-                        CONF_RAIN_ENTITY_ID,
-                        default=self.config_entry.options[CONF_RAIN_ENTITY_ID],
-                    ): selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain=[SENSOR_DOMAIN],
-                            multiple=False,
-                        ),
-                    ),
                     vol.Optional(
-                        CONF_THROUGHPUT_MM_H,
-                        default=self.config_entry.options[CONF_THROUGHPUT_MM_H],
-                    ): vol.Coerce(int),
+                        CONF_TRADE_PRICE,
+                        default=self.config_entry.options[CONF_TRADE_PRICE],
+                    ): vol.Coerce(float),
                     vol.Optional(
-                        CONF_SCALE,
-                        default=self.config_entry.options[CONF_SCALE],
-                    ): vol.Coerce(int),
+                        CONF_TAKE_PROFIT,
+                        default=self.config_entry.options[CONF_TAKE_PROFIT],
+                    ): vol.All(int, vol.Range(min=1, max=100)),
                     vol.Optional(
-                        CONF_MAX_MINS,
-                        default=self.config_entry.options[CONF_MAX_MINS],
-                    ): vol.Coerce(int),
+                        CONF_STOP_LOSS,
+                        default=self.config_entry.options[CONF_STOP_LOSS],
+                    ): vol.All(int, vol.Range(min=1, max=100)),
                 }
             ),
         )

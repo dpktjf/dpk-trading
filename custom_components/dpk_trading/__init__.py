@@ -19,11 +19,10 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import DPKTradingAPI
 from .const import (
+    CONF_STOP_LOSS,
+    CONF_TAKE_PROFIT,
+    CONF_TRADE_PRICE,
     CONF_YAHOO_ENTITY_ID,
-    CONF_MAX_MINS,
-    CONF_RAIN_ENTITY_ID,
-    CONF_SCALE,
-    CONF_THROUGHPUT_MM_H,
 )
 from .coordinator import DPKTradingDataUpdateCoordinator
 from .data import DPKTradingData
@@ -54,11 +53,10 @@ async def async_setup_entry(
 
     eto_api = DPKTradingAPI(
         name=_name,
-        eto_entity_id=entry.options[CONF_YAHOO_ENTITY_ID],
-        rain_entity_id=entry.options[CONF_RAIN_ENTITY_ID],
-        throughput=entry.options[CONF_THROUGHPUT_MM_H],
-        scale=entry.options[CONF_SCALE],
-        max_mins=entry.options[CONF_MAX_MINS],
+        yahoo_entity_id=entry.options[CONF_YAHOO_ENTITY_ID],
+        trade_price=entry.options[CONF_TRADE_PRICE],
+        take_profit=entry.options[CONF_TAKE_PROFIT],
+        stop_loss=entry.options[CONF_STOP_LOSS],
         session=async_get_clientsession(hass),
         states=hass.states,
     )

@@ -9,21 +9,20 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorEntityDescription,
 )
-from homeassistant.components.sensor.const import SensorDeviceClass, SensorStateClass
-from homeassistant.const import UnitOfTime
+from homeassistant.components.sensor.const import SensorStateClass
+from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from custom_components.dpk_trading.api import DPKTradingError
 from custom_components.dpk_trading.const import (
+    ATTR_ACTION,
+    ATTR_CURRENT_PRICE,
     ATTR_RETURN,
-    ATTR_RAIN,
-    ATTR_RAW_RUNTIME,
     ATTRIBUTION,
-    CALC_RUNTIME,
-    CONF_MAX_MINS,
-    CONF_SCALE,
-    CONF_THROUGHPUT_MM_H,
+    CONF_STOP_LOSS,
+    CONF_TAKE_PROFIT,
+    CONF_TRADE_PRICE,
     DEFAULT_NAME,
     DOMAIN,
     MANUFACTURER,
@@ -39,10 +38,9 @@ if TYPE_CHECKING:
 SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=DOMAIN,
-        name="ETO Smart Zone",
-        icon="mdi:sprinkler",
-        native_unit_of_measurement=UnitOfTime.SECONDS,
-        device_class=SensorDeviceClass.DURATION,
+        name="Trading return",
+        icon="mdi:currency-usd",
+        native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 )
@@ -57,14 +55,14 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     domain_data = config_entry.runtime_data
     name = domain_data.name
-    weather_coordinator = domain_data.coordinator
+    coordinator = domain_data.coordinator
 
     entities: list[DPKTradingSensor] = [
         DPKTradingSensor(
             name,
-            f"{description.key}-{name}",
+            config_entry.entry_id,
             description,
-            weather_coordinator,
+            coordinator,
         )
         for description in SENSOR_TYPES
     ]
@@ -80,7 +78,7 @@ class DPKTradingSensor(SensorEntity):
     def __init__(
         self,
         name: str,
-        unique_id: str,
+        entry_id: str,
         entity_description: SensorEntityDescription,
         coordinator: DPKTradingDataUpdateCoordinator,
     ) -> None:
@@ -89,12 +87,12 @@ class DPKTradingSensor(SensorEntity):
         self._coordinator = coordinator
         self.states: dict[str, Any] = {}
 
-        self._attr_name = f"{entity_description.name} {name}"
-        self._attr_unique_id = unique_id
-        split_unique_id = unique_id.split("-")
+        self._attr_name = f"{name} {entity_description.name}"
+        self._attr_unique_id = f"{entry_id}-{name}-{entity_description.name}"
+
         self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, f"{split_unique_id[1]}.lower()")},
+            identifiers={(DOMAIN, DEFAULT_NAME)},
             manufacturer=MANUFACTURER,
             name=DEFAULT_NAME,
         )
@@ -117,23 +115,17 @@ class DPKTradingSensor(SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the native value of the sensor."""
-        return self._coordinator.data[CALC_RUNTIME]
+        return self._coordinator.data[ATTR_RETURN]
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the device specific state attributes."""
         attributes: dict[str, Any] = {}
 
-        try:
-            attributes[ATTR_RETURN] = self._coordinator.data[ATTR_RETURN]
-            attributes[ATTR_RAIN] = self._coordinator.data[ATTR_RAIN]
-            attributes[CONF_THROUGHPUT_MM_H] = self._coordinator.data[
-                CONF_THROUGHPUT_MM_H
-            ]
-            attributes[CONF_SCALE] = self._coordinator.data[CONF_SCALE]
-            attributes[ATTR_RAW_RUNTIME] = self._coordinator.data[ATTR_RAW_RUNTIME]
-            attributes[CONF_MAX_MINS] = self._coordinator.data[CONF_MAX_MINS]
-        except DPKTradingError as ex:
-            _LOGGER.exception(ex)  # noqa: TRY401
+        attributes[ATTR_ACTION] = self._coordinator.data[ATTR_ACTION]
+        attributes[ATTR_CURRENT_PRICE] = self._coordinator.data[ATTR_CURRENT_PRICE]
+        attributes[CONF_TRADE_PRICE] = self._coordinator.data[CONF_TRADE_PRICE]
+        attributes[CONF_TAKE_PROFIT] = self._coordinator.data[CONF_TAKE_PROFIT]
+        attributes[CONF_STOP_LOSS] = self._coordinator.data[CONF_STOP_LOSS]
 
         return attributes
