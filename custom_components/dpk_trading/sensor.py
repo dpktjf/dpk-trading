@@ -14,7 +14,6 @@ from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
-from custom_components.dpk_trading.api import DPKTradingError
 from custom_components.dpk_trading.const import (
     ATTR_ACTION,
     ATTR_CURRENT_PRICE,

@@ -9,9 +9,9 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import (
+    DPKTradingAPI,
     DPKTradingAuthenticationError,
     DPKTradingError,
-    DPKTradingAPI,
 )
 from .const import DOMAIN, LOGGER
 
