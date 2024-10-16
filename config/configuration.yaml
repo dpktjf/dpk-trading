@@ -12,4 +12,4 @@ template: !include templates.yaml
 logger:
   default: info
   logs:
-    custom_components.eto_smart_zone: debug
+    custom_components.dpk_trading: debug
